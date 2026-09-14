@@ -344,8 +344,87 @@ def trigger_vote_fx(step_num, vote_type="OUI"):
     """
     st.markdown(fx_html, unsafe_allow_html=True)
 
-def trigger_step_validation_fx(step_num):
-    trigger_vote_fx(step_num, "OUI")
+def trigger_step_validation_fx(step_num, vote_type="OUI"):
+    """Joue un son distinct et affiche une animation visuelle (Smiley + Boîte 📦) selon le vote."""
+    if vote_type == "NON":
+        icon = "😞"
+        title = f"⚠️ ÉTAPE {step_num} : NON-CONFORME (NON) 😞"
+        bg_gradient = "linear-gradient(135deg, rgba(225, 29, 72, 0.95), rgba(15, 23, 42, 0.95))"
+        border_color = "#FB7185"
+        sound_js = """
+            var ctx = window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') { ctx.resume(); }
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(261.63, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(196.00, ctx.currentTime + 0.25);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+        """
+    elif vote_type in ["PARTIEL", "PARTIELLEMENT"]:
+        icon = "🤔"
+        title = f"❓ ÉTAPE {step_num} : PARTIEL / RÉSERVE 🤔"
+        bg_gradient = "linear-gradient(135deg, rgba(217, 119, 6, 0.95), rgba(15, 23, 42, 0.95))"
+        border_color = "#FBBF24"
+        sound_js = """
+            var ctx = window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') { ctx.resume(); }
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(440.00, ctx.currentTime);
+            osc.frequency.setValueAtTime(554.37, ctx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.28);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.28);
+        """
+    else: # OUI
+        icon = "😊"
+        title = f"✨ ÉTAPE {step_num} : CONFORME (OUI) 😊"
+        bg_gradient = "linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(15, 23, 42, 0.95))"
+        border_color = "#34D399"
+        sound_js = """
+            var ctx = window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') { ctx.resume(); }
+            var notes = [523.25, 659.25, 783.99];
+            notes.forEach(function(freq, i){
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+                gain.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.08 + 0.2);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + i * 0.08);
+                osc.stop(ctx.currentTime + i * 0.08 + 0.2);
+            });
+        """
+
+    fx_html = f"""
+    <script>
+    (function(){{
+        try {{
+            {sound_js}
+        }} catch(e) {{}}
+    }})();
+    </script>
+    <div class='step-flash-overlay' style='background: {bg_gradient} !important; border-color: {border_color} !important;'>
+        <div class='falling-box-anim'>{icon}</div>
+        <div class='lightning-flash-anim'>⚡</div>
+        <div class='step-valid-badge'>{title}</div>
+    </div>
+    """
+    st.markdown(fx_html, unsafe_allow_html=True)
+
 
 def trigger_final_save_fx():
     """Joue une fanfare festive et déclenche une pluie de boîtes métalliques et feux d'artifice."""
@@ -1247,6 +1326,23 @@ button[aria-label*="Zone 10"], div[data-testid="stButton"] button[aria-label*="Z
     }
 
 </style>
+
+    <!-- DÉBLOCAGE AUDIO ET AUTO-SCROLL SUR SMARTPHONE -->
+    <script>
+    (function() {
+        if (!window.globalAudioCtx) {
+            window.globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        function unlockAudio() {
+            if (window.globalAudioCtx && window.globalAudioCtx.state === 'suspended') {
+                window.globalAudioCtx.resume();
+            }
+        }
+        window.addEventListener('click', unlockAudio, { once: true });
+        window.addEventListener('touchstart', unlockAudio, { once: true });
+    })();
+    </script>
+
 """, unsafe_allow_html=True)
 
 # Affichage permanent du titre principal
