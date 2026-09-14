@@ -263,7 +263,7 @@ def log_click_event(action, details=""):
 
 
 def trigger_vote_fx(step_num, vote_type="OUI"):
-    """Joue un son et affiche une notification visuelle personnalisée (Smiley + Couleurs) selon le vote (OUI, NON, PARTIELLEMENT)."""
+    """Joue le son de confirmation OUI (identique pour tous) et affiche la notification visuelle personnalisée (Smiley + Couleurs) selon le vote."""
     vote_upper = str(vote_type).upper()
     
     if "NON" in vote_upper:
@@ -271,67 +271,40 @@ def trigger_vote_fx(step_num, vote_type="OUI"):
         label = f"⚠️ ÉTAPE {step_num} : NON-CONFORME (NON) 😞"
         border_color = "#EF4444"
         bg_gradient = "linear-gradient(135deg, rgba(225, 29, 72, 0.95), rgba(15, 23, 42, 0.95))"
-        js_audio = """
-            var ctx = window.parent.globalAudioCtx || window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-            if (ctx.state === 'suspended') { ctx.resume(); }
-            var notes = [261.63, 196.00];
-            notes.forEach(function(freq, i){
-                var osc = ctx.createOscillator();
-                var gain = ctx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
-                gain.gain.setValueAtTime(0.22, ctx.currentTime + i * 0.12);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.12 + 0.28);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(ctx.currentTime + i * 0.12);
-                osc.stop(ctx.currentTime + i * 0.12 + 0.28);
-            });
-        """
     elif "PARTIEL" in vote_upper or "N/A" in vote_upper:
         icon = "🤔"
         label = f"❓ ÉTAPE {step_num} : PARTIEL / RÉSERVE 🤔"
         border_color = "#F59E0B"
         bg_gradient = "linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(15, 23, 42, 0.95))"
-        js_audio = """
-            var ctx = window.parent.globalAudioCtx || window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-            if (ctx.state === 'suspended') { ctx.resume(); }
-            var notes = [440.00, 554.37];
-            notes.forEach(function(freq, i){
-                var osc = ctx.createOscillator();
-                var gain = ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.10);
-                gain.gain.setValueAtTime(0.20, ctx.currentTime + i * 0.10);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.10 + 0.22);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(ctx.currentTime + i * 0.10);
-                osc.stop(ctx.currentTime + i * 0.10 + 0.22);
-            });
-        """
     else:  # OUI
         icon = "😊"
         label = f"✨ ÉTAPE {step_num} : CONFORME (OUI) 😊"
         border_color = "#10B981"
         bg_gradient = "linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(15, 23, 42, 0.95))"
-        js_audio = """
-            var ctx = window.parent.globalAudioCtx || window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-            if (ctx.state === 'suspended') { ctx.resume(); }
-            var notes = [523.25, 659.25, 783.99];
-            notes.forEach(function(freq, i){
-                var osc = ctx.createOscillator();
-                var gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-                gain.gain.setValueAtTime(0.20, ctx.currentTime + i * 0.08);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.08 + 0.22);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(ctx.currentTime + i * 0.08);
-                osc.stop(ctx.currentTime + i * 0.08 + 0.22);
-            });
-        """
+
+    # Son de confirmation OUI identique pour OUI, NON et PARTIEL (Accord Do-Mi-Sol)
+    js_audio = """
+        var pWin = window.parent || window;
+        if (!pWin.globalAudioCtx || pWin.globalAudioCtx.state === 'closed') {
+            pWin.globalAudioCtx = new (pWin.AudioContext || pWin.webkitAudioContext)();
+        }
+        var ctx = pWin.globalAudioCtx;
+        if (ctx.state === 'suspended') { ctx.resume(); }
+        var notes = [523.25, 659.25, 783.99];
+        var now = ctx.currentTime;
+        notes.forEach(function(freq, i){
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.08);
+            gain.gain.setValueAtTime(0.25, now + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.25);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + i * 0.08);
+            osc.stop(now + i * 0.08 + 0.25);
+        });
+    """
 
     js_code = f"""<script>
     (function(){{
@@ -340,14 +313,13 @@ def trigger_vote_fx(step_num, vote_type="OUI"):
         }} catch(e) {{}}
     }})();
     </script>"""
-    components.html(js_code, height=0, width=0)
+    components.html(js_code, height=1, width=1)
     
     overlay_html = f"""<div class='step-flash-overlay' style='background: {bg_gradient} !important; border-color: {border_color} !important;'>
         <div class='falling-box-anim'>{icon}</div>
         <div class='step-valid-badge' style='color: #FFFFFF !important;'>{label}</div>
     </div>"""
     st.markdown(overlay_html, unsafe_allow_html=True)
-
 
 def trigger_step_validation_fx(step_num, vote_type="OUI"):
     """Joue un son distinct et affiche une animation visuelle selon le vote."""
@@ -1252,6 +1224,41 @@ button[aria-label*="Zone 10"], div[data-testid="stButton"] button[aria-label*="Z
         margin-top: 6px !important;
     }
 
+
+    /* Force high contrast dark navy background with bright white text for all text areas and inputs */
+    div[data-baseweb="textarea"], 
+    div[data-baseweb="textarea"] textarea, 
+    div[data-baseweb="input"], 
+    div[data-baseweb="input"] input,
+    textarea, 
+    input {
+        background-color: #0F172A !important;
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        border: 2px solid #38BDF8 !important;
+        border-radius: 12px !important;
+        caret-color: #38BDF8 !important;
+    }
+
+    div[data-baseweb="textarea"] textarea:focus, 
+    div[data-baseweb="input"] input:focus,
+    textarea:focus, 
+    input:focus {
+        background-color: #1E293B !important;
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        border-color: #F59E0B !important;
+        box-shadow: 0 0 15px rgba(245, 158, 11, 0.5) !important;
+    }
+
+    .stTextArea label, .stTextInput label {
+        color: #38BDF8 !important;
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+    }
+
 </style>
 
 
@@ -1434,7 +1441,7 @@ if not st.session_state.get("user_authenticated", False):
             z_sponsor = z_info.get("sponsor", "")
             with target_col:
                 st.markdown(f"<div class='zone-marker-{idx}'></div>", unsafe_allow_html=True)
-                lbl = f"{z['icon']}  {z_label} — Sponsor : {z_sponsor}"
+                lbl = f"{z['icon']}  {z_label}"
                 if st.button(lbl, key=f"z_badge_{idx}", use_container_width=True):
                     st.session_state.pending_zone = z["key"]
                     st.session_state.auth_step = 4 # Étape de confirmation!
