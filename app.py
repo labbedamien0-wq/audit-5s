@@ -1308,6 +1308,32 @@ button[aria-label*="Zone 10"], div[data-testid="stButton"] button[aria-label*="Z
         font-weight: 800 !important;
     }
 
+
+    /* Style pour les 2 boutons de choix d'interface Smartphone vs PC */
+    div:has(.mode-btn-active) + div button,
+    div:has(.mode-btn-active) + div div[data-testid="stButton"] button {
+        background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+        border: 3px solid #38BDF8 !important;
+        border-bottom: 6px solid #075985 !important;
+        color: #FFFFFF !important;
+        font-size: 1.1rem !important;
+        font-weight: 900 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 8px 25px rgba(56, 189, 248, 0.45) !important;
+    }
+
+    div:has(.mode-btn-inactive) + div button,
+    div:has(.mode-btn-inactive) + div div[data-testid="stButton"] button {
+        background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%) !important;
+        border: 2px solid #475569 !important;
+        border-bottom: 5px solid #334155 !important;
+        color: #94A3B8 !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        border-radius: 16px !important;
+        opacity: 0.85 !important;
+    }
+
 </style>
 
 
@@ -1468,9 +1494,28 @@ if not st.session_state.get("user_authenticated", False):
         st.markdown("<div class='user-id-badge-3d'>📍 SÉLECTION DE LA ZONE LOGISTIQUE</div>", unsafe_allow_html=True)
         st.info(f"Profil actif : **{st.session_state.get('user_name', '')}** ({st.session_state.get('user_role', '')})")
         
-        # Sélecteur d'interface Smartphone vs PC
-        mode_choice = st.radio("📱 Mode d'affichage d'interface :", ["📱 Smartphone (1 Colonne)", "💻 PC / Tablette (2 Colonnes)"], index=0 if st.session_state.get("layout_mode") == "smartphone" else 1, horizontal=True, key="mode_selector_radio")
-        st.session_state["layout_mode"] = "smartphone" if "Smartphone" in mode_choice else "pc"
+        # 2 Boutons 3D distincts pour le Choix d'Interface (Smartphone vs PC)
+        st.session_state.setdefault("layout_mode", "smartphone")
+        st.markdown("<p style='text-align: center; font-size: 1.15rem; color: #38BDF8; font-weight: 800; letter-spacing: 1px;'>📱 CHOIX DE L'INTERFACE D'AFFICHAGE :</p>", unsafe_allow_html=True)
+        
+        col_m1, col_m2 = st.columns(2)
+        curr_mode = st.session_state.get("layout_mode", "smartphone")
+        
+        with col_m1:
+            cls_mob = "mode-btn-active" if curr_mode == "smartphone" else "mode-btn-inactive"
+            st.markdown(f"<div class='{cls_mob}'></div>", unsafe_allow_html=True)
+            lbl_mob = "📱 MODE SMARTPHONE\n\n(1 Colonne Tactile)" + ("  [ACTIF]" if curr_mode == "smartphone" else "")
+            if st.button(lbl_mob, key="btn_select_mode_smartphone", use_container_width=True):
+                st.session_state["layout_mode"] = "smartphone"
+                st.rerun()
+                
+        with col_m2:
+            cls_pc = "mode-btn-active" if curr_mode == "pc" else "mode-btn-inactive"
+            st.markdown(f"<div class='{cls_pc}'></div>", unsafe_allow_html=True)
+            lbl_pc = "💻 MODE PC / TABLETTE\n\n(2 Colonnes Large)" + ("  [ACTIF]" if curr_mode == "pc" else "")
+            if st.button(lbl_pc, key="btn_select_mode_pc", use_container_width=True):
+                st.session_state["layout_mode"] = "pc"
+                st.rerun()
         st.markdown("<p style='text-align: center; font-size: 18px; color: #CBD5E1; font-weight: 700;'>Sélectionnez votre zone :</p>", unsafe_allow_html=True)
 
         ZONES_BADGES = [
