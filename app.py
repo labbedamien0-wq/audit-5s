@@ -62,117 +62,118 @@ ZONES_MASSILLY = {
 
 # Les 15 critères d'audit officiels de Massilly
 CRITERES_OFFICIELS = [
-    # Seiri (Trier)
+    # Sort (Trier)
     {
         "id": "c1",
         "cat": "1S - TRIER (Seiri)",
-        "check_txt": "Les sols, les murs et les abords. Pas de palettes cassées, films plastiques usagés ou objets inutiles.",
-        "txt": "Les éléments inutiles ont été supprimés de la zone (au sol, sur les murs, autour des piliers, au plafond, sur les abords).",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier qu'aucune palette cassée, film plastique usagé, cerclage ou déchet n'encombre le sol.<br>• Contrôler l'absence d'outils hors d'usage ou de matériel obsolète.<br>• Appliquer la règle des 3 mois : tout ce qui n'a pas servi depuis 3 mois doit être évacué ou étiqueté 'Red Tag'."
+        "check_txt": "Les sols, les murs et les abords. Pas d'éléments inutiles, palettes cassées ou objets encombrants.",
+        "txt": "Les éléments inutiles ont été supprimés de la zone (au sol, sur les murs, sur les abords).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier qu'aucune palette cassée, film plastique usagé, cerclage ou déchet n'encombre le sol.<br>• Contrôler l'absence d'outils hors d'usage ou de matériel obsolète.<br>• Appliquer la règle des 3 mois : tout ce qui n'a pas servi depuis 3 mois doit être évacué."
     },
     {
         "id": "c2",
         "cat": "1S - TRIER (Seiri)",
-        "check_txt": "Les tiroirs, armoires, établis et servantes. Vidés de tout matériel superflus ou obsolètes.",
-        "txt": "Les tiroirs, établis, servantes et armoires sont vidés des choses inutiles ou superflues.",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Ouvrir les tiroirs des établis et servantes de la zone.<br>• S'assurer qu'aucun chiffon souillé, pièce usée ou vieux document ne s'y accumule.<br>• Ne garder que le strict nécessaire aux opérations quotidiennes."
+        "check_txt": "Les servantes, tiroirs, établis et armoires. Vidés de tout matériel ou objet inutile.",
+        "txt": "Les servantes/tiroirs/établis/armoires sont vidés des choses inutiles.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Ouvrir les tiroirs des établis, armoires et servantes de la zone.<br>• S'assurer qu'aucun chiffon souillé, pièce usée ou vieux document ne s'y accumule.<br>• Ne garder que le strict nécessaire aux opérations quotidiennes."
     },
     {
         "id": "c3",
         "cat": "1S - TRIER (Seiri)",
-        "check_txt": "Les allées de circulation. Totalement dégagées et sans aucun débordement de palette.",
-        "txt": "Les allées de circulation sont dégagées et propres (absence d'encombrement par des palettes).",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Parcourir les allées piétons et chariots de la zone.<br>• S'assurer que les allées restent libres à 100% sans aucun débordement de palette ou carton.<br>• Vérifier que les accès aux extincteurs et arrêts d'urgence sont totalement dégagés."
+        "check_txt": "Les allées de circulation. Libres et totalement dégagées de tout encombrement.",
+        "txt": "Les allées de circulation sont dégagées.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Parcourir les allées piétons et chariots de la zone.<br>• S'assurer que les allées restent libres à 100% sans aucun débordement de palette ou carton.<br>• Vérifier que les accès aux extincteurs et arrêts d'urgence sont dégagés."
     },
-    # Seiton (Ranger)
+    # Straighten (Organiser, ranger)
     {
         "id": "c4",
         "cat": "2S - RANGER (Seiton)",
-        "check_txt": "Les équipements, bennes et palettes. Marquage au sol présent et matériel bien rangé à son emplacement.",
-        "txt": "Tous les équipements, bennes, palettes et outils de la zone ont un marquage au sol et sont bien rangés à leur emplacement.",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Contrôler que chaque chariot, bac, benne ou transpalette possède son contour tracé au sol.<br>• Vérifier que le matériel est effectivement rangé à l'intérieur de son marquage tracé."
+        "check_txt": "Tous les équipements et outils. Rangés et identifiés à leur emplacement (marquage au sol ou autre).",
+        "txt": "Tous les équipements et outils utilisés dans la zone sont rangés et identifiés (marquage au sol ou autres).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Contrôler que chaque chariot, bac, benne, outil ou transpalette possède son contour tracé au sol.<br>• Vérifier que le matériel est effectivement rangé à l'intérieur de son marquage tracé."
     },
     {
         "id": "c5",
         "cat": "2S - RANGER (Seiton)",
-        "check_txt": "Les consommables et outils de nettoyage. Clairement identifiés, étiquetés et rangés sur leurs panneaux.",
-        "txt": "Le matériel de fourniture, de consommables et les outils de nettoyage sont clairement identifiés, étiquetés et rangés.",
+        "check_txt": "Les fournitures, consommables et moyens de nettoyage. Clairement identifiés et rangés.",
+        "txt": "Les fournitures, les consommables et le moyen de nettoyage sont clairement identifiés et rangés.",
         "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier la présence du panneau d'ombres (Shadow Board) pour le balai, la pelle et la balayette.<br>• S'assurer que chaque consommable (film étirable, étiquettes) a son emplacement identifié."
     },
     {
         "id": "c6",
         "cat": "2S - RANGER (Seiton)",
-        "check_txt": "Les produits bloqués et matières premières. Présence obligatoire de la fiche bleue d'identification.",
-        "txt": "Les matières premières et produits bloqués sont correctement stockés dans la zone (présence de la feuille d'identification bleue).",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Inspecter les palettes en zone d'attente ou d'anomalie.<br>• Vérifier qu'aucune palette bloquée ne reste sans sa fiche d'identification bleue officielle Massilly."
+        "check_txt": "Les matières premières. Stockées correctement dans la zone dédiée avec identification.",
+        "txt": "Les matières premières sont correctement stockées dans la zone.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Inspecter les palettes de matières premières et consommables.<br>• Vérifier qu'elles sont rangées dans leur zone dédiée et portent la feuille d'identification bleue officielle si bloquées."
     },
-    # Seiso (Nettoyer)
+    # Sweep (Nettoyer)
     {
         "id": "c7",
         "cat": "3S - NETTOYER (Seiso)",
-        "check_txt": "Les sols, surfaces de travail et racks. Propres, dépoussiérés et sans taches d'huile.",
-        "txt": "Les sols, les surfaces de travail, l'équipement et les aires d'entreposage sont propres et dépoussiérés.",
+        "check_txt": "Les sols, surfaces de travail et équipements. Propres, dépoussiérés et en bon état.",
+        "txt": "Les sols, les surfaces de travail et les équipements sont propres.",
         "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier l'état de propreté du sol de la zone et des surfaces des pupitres/établis.<br>• S'assurer de l'absence de traces de graisse, de poussière accumulée ou de rognures métalliques."
     },
     {
         "id": "c8",
         "cat": "3S - NETTOYER (Seiso)",
-        "check_txt": "Le matériel de nettoyage (balais, pelles, poubelles). Propre, disponible et en bon état.",
-        "txt": "Le matériel de nettoyage (balais, poubelles, servantes) est propre, disponible et en bon état de fonctionnement.",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier que la poubelle de zone n'est pas saturée.<br>• S'assurer que le balai n'a pas de manche cassé et que la pelle est propre."
+        "check_txt": "Les déchets de la zone. Collectés et recyclés correctement (cartons, plastiques...).",
+        "txt": "Les déchets sont recyclés correctement (cartons, plastiques...).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier la séparation sélective : bac cartons, bac plastiques, bac métaux.<br>• S'assurer que les poubelles de zone ne débordent pas."
     },
     {
         "id": "c9",
         "cat": "3S - NETTOYER (Seiso)",
-        "check_txt": "L'inspection préventive pendant le nettoyage. Absence de fuites d'huile sur transpalettes ou anomalies.",
-        "txt": "L'inspection préventive est réalisée pendant le nettoyage (détection des fuites d'huile, pièces usées ou anomalies).",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Profiter du nettoyage pour détecter d'éventuelles fuites d'huile sous les engins/transpalettes.<br>• Vérifier visuellement l'absence de déformation sur les montants de racks ou de câbles détériorés."
+        "check_txt": "L'environnement de travail global. Agréable (éclairages, marquage au sol, absence de poussières/graffitis).",
+        "txt": "L'environnement de travail est agréable (éclairages, marquage au sol, poussières, graffitis).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier le bon éclairage de la zone, l'état des marquages et la propreté générale.<br>• S'assurer que l'espace est sain et sans dégradation visuelle."
     },
-    # Seiketsu (Standardiser)
+    # Standardize (Standardiser)
     {
         "id": "c10",
         "cat": "4S - STANDARDISER (Seiketsu)",
-        "check_txt": "Les marquages au sol et visuels d'organisation. Clairs, en bon état et parfaitement visibles.",
-        "txt": "Les marquages au sol, étiquettes, panneaux et visuels d'organisation sont clairs, visibles et respectés.",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier que les bandes de peinture/adhésif au sol ne sont pas effacées ou arrachées.<br>• Contrôler que les panneaux de signalisation de la zone sont lisibles et propres."
+        "check_txt": "Le code couleur de la zone. Clairement identifié et facilement compréhensible.",
+        "txt": "La zone possède un code couleur et est facilement compréhensible.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier le respect de la charte graphique des couleurs (allées, zones de stock, zones de danger).<br>• S'assurer que n'importe quel arrivant comprend immédiatement l'organisation visuelle de la zone."
     },
     {
         "id": "c11",
         "cat": "4S - STANDARDISER (Seiketsu)",
-        "check_txt": "Les consignes de sécurité et standards 5S. Affichés, propres et connus de l'équipe.",
-        "txt": "Les procédures 5S, consignes de sécurité et standards de rangement sont affichés et connus de tous.",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier la présence de la fiche standard 5S officielle sur le panneau d'affichage de la zone.<br>• S'assurer que la photo de référence 'Poste Idéal' est visible."
+        "check_txt": "Les étiquettes au sol ou au mur. Parfaitement visibles et en bon état.",
+        "txt": "Les étiquettes au sol ou au mur sont visibles et en bon état.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Contrôler l'état des étiquettes d'emplacement, bandes au sol et marquages muraux.<br>• Remplacer toute étiquette détériorée, décollée ou illisible."
     },
     {
         "id": "c12",
         "cat": "4S - STANDARDISER (Seiketsu)",
-        "check_txt": "Les zones de stockage temporaire (déchets, recyclage). Dégagées, délimitées et gérées.",
-        "txt": "Les zones de stockage temporaire (tampon, déchets, recyclage) sont clairement délimitées et gérées.",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier la séparation nette entre zone de tri recyclage et zone de transit.<br>• S'assurer qu'aucun débordement sauvage n'a lieu autour des bacs."
+        "check_txt": "L'attribution des emplacements. Évident visuellement que chaque chose est à sa place.",
+        "txt": "Il est évident que chaque chose est à sa place (bennes, corbeilles, outils...).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier visuellement si bennes, corbeilles, outils et chariots occupent leur place désignée.<br>• Déceler immédiatement tout objet hors emplacement standard."
     },
-    # Shitsuke (Respecter)
+    # Sustain (Respecter)
     {
         "id": "c13",
         "cat": "5S - RESPECTER (Shitsuke)",
-        "check_txt": "Le rituel 5S quotidien de fin de poste (5 à 10 min). Effectué régulièrement par l'équipe.",
-        "txt": "Le rituel quotidien 5S de fin de poste (5 à 10 min de rangement/nettoyage) est rigoureusement effectué.",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Confirmer auprès des équipes que le rangement de 5 minutes en fin de poste est réalisé.<br>• Vérifier que le poste est laissé propre pour l'équipe suivante."
+        "check_txt": "L'organisation générale. Bonne tenue globale sans aucun danger de sécurité.",
+        "txt": "La zone a une bonne organisation générale et ne présente aucun danger sécurité.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier qu'aucun risque de chute, de collision ou de blessure n'existe dans la zone.<br>• S'assurer du respect permanent des règles de sécurité et de rangement."
     },
     {
         "id": "c14",
         "cat": "5S - RESPECTER (Shitsuke)",
-        "check_txt": "Les audits 5S réguliers. Réalisés et plan d'action suivi sur le terrain.",
-        "txt": "Les audits 5S sont réalisés régulièrement et les écarts constatés sont immédiatement corrigés.",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier que la date et le score du dernier audit sont affichés sur le tableau 5S.<br>• Contrôler l'avancement des actions correctives décidées lors de l'audit précédent."
+        "check_txt": "La documentation et consignes de zone. À jour (pas de notes manuscrites ou obsolètes).",
+        "txt": "Les documents/instructions/informations sont à jour (pas de notes obsolètes, manuscrites...).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier le panneau d'affichage 5S de la zone.<br>• Éliminer tout affichage sauvage, feuille volante manuscrite ou consigne périmée."
     },
     {
         "id": "c15",
         "cat": "5S - RESPECTER (Shitsuke)",
-        "check_txt": "La rigueur globale et l'implication de l'équipe. Esprit 5S et propositions d'amélioration.",
-        "txt": "L'équipe fait preuve de rigueur et participe activement aux propositions d'amélioration 5S.",
-        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Observer le comportement général des opérateurs quant au respect des règles.<br>• S'assurer que les remarques et idées d'amélioration remontent au sponsor de zone."
+        "check_txt": "Le standard de zone. Conforme, à jour et approprié aux réalités du terrain.",
+        "txt": "Le standard de la zone est conforme et approprié.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Contrôler si le référentiel visuel 'Standard 5S' reflète exactement l'état de la zone.<br>• Valider l'application rigoureuse du standard par l'ensemble de l'équipe."
     }
 ]
+
 
 # Initialisation robuste de la session
 st.session_state.setdefault("user_authenticated", False)
@@ -266,12 +267,13 @@ def trigger_vote_fx(step_num, vote_type="OUI"):
     vote_upper = str(vote_type).upper()
     
     if "NON" in vote_upper:
-        smiley = "😞"
-        badge_txt = f"⚠️ ÉTAPE {step_num} : NON-CONFORME (NON) 😞"
+        icon = "😞"
+        label = f"⚠️ ÉTAPE {step_num} : NON-CONFORME (NON) 😞"
         border_color = "#EF4444"
-        bg_glow = "rgba(239, 68, 68, 0.5)"
-        # Son avertissement grave (Double-ton bas)
+        bg_gradient = "linear-gradient(135deg, rgba(225, 29, 72, 0.95), rgba(15, 23, 42, 0.95))"
         js_audio = """
+            var ctx = window.parent.globalAudioCtx || window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') { ctx.resume(); }
             var notes = [261.63, 196.00];
             notes.forEach(function(freq, i){
                 var osc = ctx.createOscillator();
@@ -287,12 +289,13 @@ def trigger_vote_fx(step_num, vote_type="OUI"):
             });
         """
     elif "PARTIEL" in vote_upper or "N/A" in vote_upper:
-        smiley = "🤔"
-        badge_txt = f"❓ ÉTAPE {step_num} : PARTIEL / RÉSERVE 🤔"
+        icon = "🤔"
+        label = f"❓ ÉTAPE {step_num} : PARTIEL / RÉSERVE 🤔"
         border_color = "#F59E0B"
-        bg_glow = "rgba(245, 158, 11, 0.5)"
-        # Son interrogatif (Double ping médium)
+        bg_gradient = "linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(15, 23, 42, 0.95))"
         js_audio = """
+            var ctx = window.parent.globalAudioCtx || window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') { ctx.resume(); }
             var notes = [440.00, 554.37];
             notes.forEach(function(freq, i){
                 var osc = ctx.createOscillator();
@@ -308,12 +311,13 @@ def trigger_vote_fx(step_num, vote_type="OUI"):
             });
         """
     else:  # OUI
-        smiley = "😊"
-        badge_txt = f"✨ ÉTAPE {step_num} : CONFORME (OUI) 😊"
+        icon = "😊"
+        label = f"✨ ÉTAPE {step_num} : CONFORME (OUI) 😊"
         border_color = "#10B981"
-        bg_glow = "rgba(16, 185, 129, 0.5)"
-        # Son joyeux (Accord montant Do-Mi-Sol)
+        bg_gradient = "linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(15, 23, 42, 0.95))"
         js_audio = """
+            var ctx = window.parent.globalAudioCtx || window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') { ctx.resume(); }
             var notes = [523.25, 659.25, 783.99];
             notes.forEach(function(freq, i){
                 var osc = ctx.createOscillator();
@@ -329,91 +333,10 @@ def trigger_vote_fx(step_num, vote_type="OUI"):
             });
         """
 
-        js_code = f"""<script>
+    js_code = f"""<script>
     (function(){{
         try {{
-            var ctx = new (window.AudioContext || window.webkitAudioContext)();
             {js_audio}
-        }} catch(e) {{}}
-    }})();
-    </script>"""
-    components.html(js_code, height=0, width=0)
-    
-    overlay_html = f"""<div class='step-vote-overlay' style='border-color: {border_color} !important; box-shadow: 0 10px 40px {border_color} !important;'>
-        <div class='vote-overlay-icon'>{icon}</div>
-        <div class='vote-overlay-badge' style='color: {border_color} !important;'>{label}</div>
-    </div>"""
-    st.markdown(overlay_html, unsafe_allow_html=True)
-
-def trigger_step_validation_fx(step_num, vote_type="OUI"):
-    """Joue un son distinct et affiche une animation visuelle (Smiley + Boîte 📦) selon le vote."""
-    if vote_type == "NON":
-        icon = "😞"
-        title = f"⚠️ ÉTAPE {step_num} : NON-CONFORME (NON) 😞"
-        bg_gradient = "linear-gradient(135deg, rgba(225, 29, 72, 0.95), rgba(15, 23, 42, 0.95))"
-        border_color = "#FB7185"
-        sound_js = """
-            var ctx = window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-            if (ctx.state === 'suspended') { ctx.resume(); }
-            var osc = ctx.createOscillator();
-            var gain = ctx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(261.63, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(196.00, ctx.currentTime + 0.25);
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.3);
-        """
-    elif vote_type in ["PARTIEL", "PARTIELLEMENT"]:
-        icon = "🤔"
-        title = f"❓ ÉTAPE {step_num} : PARTIEL / RÉSERVE 🤔"
-        bg_gradient = "linear-gradient(135deg, rgba(217, 119, 6, 0.95), rgba(15, 23, 42, 0.95))"
-        border_color = "#FBBF24"
-        sound_js = """
-            var ctx = window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-            if (ctx.state === 'suspended') { ctx.resume(); }
-            var osc = ctx.createOscillator();
-            var gain = ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(440.00, ctx.currentTime);
-            osc.frequency.setValueAtTime(554.37, ctx.currentTime + 0.12);
-            gain.gain.setValueAtTime(0.25, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.28);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.28);
-        """
-    else: # OUI
-        icon = "😊"
-        title = f"✨ ÉTAPE {step_num} : CONFORME (OUI) 😊"
-        bg_gradient = "linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(15, 23, 42, 0.95))"
-        border_color = "#34D399"
-        sound_js = """
-            var ctx = window.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-            if (ctx.state === 'suspended') { ctx.resume(); }
-            var notes = [523.25, 659.25, 783.99];
-            notes.forEach(function(freq, i){
-                var osc = ctx.createOscillator();
-                var gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-                gain.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.08);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.08 + 0.2);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(ctx.currentTime + i * 0.08);
-                osc.stop(ctx.currentTime + i * 0.08 + 0.2);
-            });
-        """
-
-        js_code = f"""<script>
-    (function(){{
-        try {{
-            {sound_js}
         }} catch(e) {{}}
     }})();
     </script>"""
@@ -421,10 +344,14 @@ def trigger_step_validation_fx(step_num, vote_type="OUI"):
     
     overlay_html = f"""<div class='step-flash-overlay' style='background: {bg_gradient} !important; border-color: {border_color} !important;'>
         <div class='falling-box-anim'>{icon}</div>
-        <div class='step-valid-badge' style='color: {border_color} !important;'>{label}</div>
+        <div class='step-valid-badge' style='color: #FFFFFF !important;'>{label}</div>
     </div>"""
     st.markdown(overlay_html, unsafe_allow_html=True)
 
+
+def trigger_step_validation_fx(step_num, vote_type="OUI"):
+    """Joue un son distinct et affiche une animation visuelle selon le vote."""
+    trigger_vote_fx(step_num, vote_type)
 
 def trigger_final_save_fx():
     """Joue une fanfare festive et déclenche une pluie de boîtes métalliques et feux d'artifice."""
