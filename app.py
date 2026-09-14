@@ -2,7 +2,22 @@ import streamlit as st
 import pandas as pd
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+def get_paris_now():
+    """Retourne la date et l'heure courante au fuseau horaire de Paris / Massilly (UTC+2 CEST)."""
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("Europe/Paris"))
+    except Exception:
+        return datetime.now(timezone.utc) + timedelta(hours=2)
+
+def get_paris_now_str(with_ms=False):
+    dt = get_paris_now()
+    if with_ms:
+        return dt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
 
 try:
     from streamlit_gsheets import GSheetsConnection
@@ -49,82 +64,112 @@ CRITERES_OFFICIELS = [
     # Seiri (Trier)
     {
         "id": "c1",
-        "cat": "1. Sort (Seiri) - Trier",
-        "txt": "Les éléments inutiles ont été supprimés de la zone (au sol, sur les murs, autour des piliers, au plafond, sur les abords)."
+        "cat": "1S - TRIER (Seiri)",
+        "check_txt": "Les sols, les murs et les abords. Pas de palettes cassées, films plastiques usagés ou objets inutiles.",
+        "txt": "Les éléments inutiles ont été supprimés de la zone (au sol, sur les murs, autour des piliers, au plafond, sur les abords).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier qu'aucune palette cassée, film plastique usagé, cerclage ou déchet n'encombre le sol.<br>• Contrôler l'absence d'outils hors d'usage ou de matériel obsolète.<br>• Appliquer la règle des 3 mois : tout ce qui n'a pas servi depuis 3 mois doit être évacué ou étiqueté 'Red Tag'."
     },
     {
         "id": "c2",
-        "cat": "1. Sort (Seiri) - Trier",
-        "txt": "Les tiroirs, établis, servantes et armoires sont vidés des choses inutiles ou superflues."
+        "cat": "1S - TRIER (Seiri)",
+        "check_txt": "Les tiroirs, armoires, établis et servantes. Vidés de tout matériel superflus ou obsolètes.",
+        "txt": "Les tiroirs, établis, servantes et armoires sont vidés des choses inutiles ou superflues.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Ouvrir les tiroirs des établis et servantes de la zone.<br>• S'assurer qu'aucun chiffon souillé, pièce usée ou vieux document ne s'y accumule.<br>• Ne garder que le strict nécessaire aux opérations quotidiennes."
     },
     {
         "id": "c3",
-        "cat": "1. Sort (Seiri) - Trier",
-        "txt": "Les allées de circulation sont dégagées et propres (absence d'encombrement par des palettes)."
+        "cat": "1S - TRIER (Seiri)",
+        "check_txt": "Les allées de circulation. Totalement dégagées et sans aucun débordement de palette.",
+        "txt": "Les allées de circulation sont dégagées et propres (absence d'encombrement par des palettes).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Parcourir les allées piétons et chariots de la zone.<br>• S'assurer que les allées restent libres à 100% sans aucun débordement de palette ou carton.<br>• Vérifier que les accès aux extincteurs et arrêts d'urgence sont totalement dégagés."
     },
     # Seiton (Ranger)
     {
         "id": "c4",
-        "cat": "2. Straighten (Seiton) - Ranger",
-        "txt": "Tous les équipements, bennes, palettes et outils de la zone ont un marquage au sol et sont bien rangés à leur emplacement."
+        "cat": "2S - RANGER (Seiton)",
+        "check_txt": "Les équipements, bennes et palettes. Marquage au sol présent et matériel bien rangé à son emplacement.",
+        "txt": "Tous les équipements, bennes, palettes et outils de la zone ont un marquage au sol et sont bien rangés à leur emplacement.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Contrôler que chaque chariot, bac, benne ou transpalette possède son contour tracé au sol.<br>• Vérifier que le matériel est effectivement rangé à l'intérieur de son marquage tracé."
     },
     {
         "id": "c5",
-        "cat": "2. Straighten (Seiton) - Ranger",
-        "txt": "Le matériel de fourniture, de consommable et les outils de nettoyage sont clairement identifiés, étiquetés et rangés."
+        "cat": "2S - RANGER (Seiton)",
+        "check_txt": "Les consommables et outils de nettoyage. Clairement identifiés, étiquetés et rangés sur leurs panneaux.",
+        "txt": "Le matériel de fourniture, de consommables et les outils de nettoyage sont clairement identifiés, étiquetés et rangés.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier la présence du panneau d'ombres (Shadow Board) pour le balai, la pelle et la balayette.<br>• S'assurer que chaque consommable (film étirable, étiquettes) a son emplacement identifié."
     },
     {
         "id": "c6",
-        "cat": "2. Straighten (Seiton) - Ranger",
-        "txt": "Les matières premières et produits bloqués sont correctement stockés dans la zone (présence de la feuille d'identification bleue)."
+        "cat": "2S - RANGER (Seiton)",
+        "check_txt": "Les produits bloqués et matières premières. Présence obligatoire de la fiche bleue d'identification.",
+        "txt": "Les matières premières et produits bloqués sont correctement stockés dans la zone (présence de la feuille d'identification bleue).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Inspecter les palettes en zone d'attente ou d'anomalie.<br>• Vérifier qu'aucune palette bloquée ne reste sans sa fiche d'identification bleue officielle Massilly."
     },
     # Seiso (Nettoyer)
     {
         "id": "c7",
-        "cat": "3. Sweep (Seiso) - Nettoyer",
-        "txt": "Les sols, les surfaces de travail, l'équipement et les aires d'entreposage de la zone sont propres (sans poussière ni résidus)."
+        "cat": "3S - NETTOYER (Seiso)",
+        "check_txt": "Les sols, surfaces de travail et racks. Propres, dépoussiérés et sans taches d'huile.",
+        "txt": "Les sols, les surfaces de travail, l'équipement et les aires d'entreposage sont propres et dépoussiérés.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier l'état de propreté du sol de la zone et des surfaces des pupitres/établis.<br>• S'assurer de l'absence de traces de graisse, de poussière accumulée ou de rognures métalliques."
     },
     {
         "id": "c8",
-        "cat": "3. Sweep (Seiso) - Nettoyer",
-        "txt": "Les déchets et les matières recyclables sont collectés et éliminés correctement (respect du tri sélectif cartons/plastiques)."
+        "cat": "3S - NETTOYER (Seiso)",
+        "check_txt": "Le matériel de nettoyage (balais, pelles, poubelles). Propre, disponible et en bon état.",
+        "txt": "Le matériel de nettoyage (balais, poubelles, servantes) est propre, disponible et en bon état de fonctionnement.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier que la poubelle de zone n'est pas saturée.<br>• S'assurer que le balai n'a pas de manche cassé et que la pelle est propre."
     },
     {
         "id": "c9",
-        "cat": "3. Sweep (Seiso) - Nettoyer",
-        "txt": "L'environnement de travail est bon (éclairages fonctionnels, absence de poussière excessive, marquage au sol bien visible)."
+        "cat": "3S - NETTOYER (Seiso)",
+        "check_txt": "L'inspection préventive pendant le nettoyage. Absence de fuites d'huile sur transpalettes ou anomalies.",
+        "txt": "L'inspection préventive est réalisée pendant le nettoyage (détection des fuites d'huile, pièces usées ou anomalies).",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Profiter du nettoyage pour détecter d'éventuelles fuites d'huile sous les engins/transpalettes.<br>• Vérifier visuellement l'absence de déformation sur les montants de racks ou de câbles détériorés."
     },
     # Seiketsu (Standardiser)
     {
         "id": "c10",
-        "cat": "4. Standardize (Seiketsu) - Standardiser",
-        "txt": "Les rôles sont clairement définis pour garder la zone propre et ordonnée (Opérateurs, planning de nettoyage...)."
+        "cat": "4S - STANDARDISER (Seiketsu)",
+        "check_txt": "Les marquages au sol et visuels d'organisation. Clairs, en bon état et parfaitement visibles.",
+        "txt": "Les marquages au sol, étiquettes, panneaux et visuels d'organisation sont clairs, visibles et respectés.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier que les bandes de peinture/adhésif au sol ne sont pas effacées ou arrachées.<br>• Contrôler que les panneaux de signalisation de la zone sont lisibles et propres."
     },
     {
         "id": "c11",
-        "cat": "4. Standardize (Seiketsu) - Standardiser",
-        "txt": "Les tâches standard liées au nettoyage et à l'organisation sont définies (Rituel de fin de poste de 5-10 minutes...)."
+        "cat": "4S - STANDARDISER (Seiketsu)",
+        "check_txt": "Les consignes de sécurité et standards 5S. Affichés, propres et connus de l'équipe.",
+        "txt": "Les procédures 5S, consignes de sécurité et standards de rangement sont affichés et connus de tous.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier la présence de la fiche standard 5S officielle sur le panneau d'affichage de la zone.<br>• S'assurer que la photo de référence 'Poste Idéal' est visible."
     },
     {
         "id": "c12",
-        "cat": "4. Standardize (Seiketsu) - Standardiser",
-        "txt": "Il est évident visuellement qu'il y a une place désignée pour chaque chose (bennes, corbeilles, balais...)."
+        "cat": "4S - STANDARDISER (Seiketsu)",
+        "check_txt": "Les zones de stockage temporaire (déchets, recyclage). Dégagées, délimitées et gérées.",
+        "txt": "Les zones de stockage temporaire (tampon, déchets, recyclage) sont clairement délimitées et gérées.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier la séparation nette entre zone de tri recyclage et zone de transit.<br>• S'assurer qu'aucun débordement sauvage n'a lieu autour des bacs."
     },
-    # Shitsuke (Maintenir)
+    # Shitsuke (Respecter)
     {
         "id": "c13",
-        "cat": "5. Sustain (Shitsuke) - Maintenir/Respecter",
-        "txt": "La zone présente une bonne organisation générale et ne présente aucun danger pour la sécurité du personnel (pas de risque de chute)."
+        "cat": "5S - RESPECTER (Shitsuke)",
+        "check_txt": "Le rituel 5S quotidien de fin de poste (5 à 10 min). Effectué régulièrement par l'équipe.",
+        "txt": "Le rituel quotidien 5S de fin de poste (5 à 10 min de rangement/nettoyage) est rigoureusement effectué.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Confirmer auprès des équipes que le rangement de 5 minutes en fin de poste est réalisé.<br>• Vérifier que le poste est laissé propre pour l'équipe suivante."
     },
     {
         "id": "c14",
-        "cat": "5. Sustain (Shitsuke) - Maintenir/Respecter",
-        "txt": "Les documents et instructions visuelles de la zone sont à jour (pas de feuilles volantes ou de notes obsolètes)."
+        "cat": "5S - RESPECTER (Shitsuke)",
+        "check_txt": "Les audits 5S réguliers. Réalisés et plan d'action suivi sur le terrain.",
+        "txt": "Les audits 5S sont réalisés régulièrement et les écarts constatés sont immédiatement corrigés.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Vérifier que la date et le score du dernier audit sont affichés sur le tableau 5S.<br>• Contrôler l'avancement des actions correctives décidées lors de l'audit précédent."
     },
     {
         "id": "c15",
-        "cat": "5. Sustain (Shitsuke) - Maintenir/Respecter",
-        "txt": "Le standard de la zone est conforme, pertinent et respecté au quotidien par l'ensemble de l'équipe terrain."
+        "cat": "5S - RESPECTER (Shitsuke)",
+        "check_txt": "La rigueur globale et l'implication de l'équipe. Esprit 5S et propositions d'amélioration.",
+        "txt": "L'équipe fait preuve de rigueur et participe activement aux propositions d'amélioration 5S.",
+        "expl": "💡 <b>Que vérifier sur le terrain ?</b><br>• Observer le comportement général des opérateurs quant au respect des règles.<br>• S'assurer que les remarques et idées d'amélioration remontent au sponsor de zone."
     }
 ]
 
@@ -153,7 +198,11 @@ else:
 if not os.path.exists(SHARED_DATA_FILE):
     colonnes_init = [
         "Date", "Zone", "Sponsor", "Auditeur", "Role",
-        "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "c9", "c10", "c11", "c12", "c13", "c14", "c15",
+        "c1", "c1_comment", "c2", "c2_comment", "c3", "c3_comment",
+        "c4", "c4_comment", "c5", "c5_comment", "c6", "c6_comment",
+        "c7", "c7_comment", "c8", "c8_comment", "c9", "c9_comment",
+        "c10", "c10_comment", "c11", "c11_comment", "c12", "c12_comment",
+        "c13", "c13_comment", "c14", "c14_comment", "c15", "c15_comment",
         "Score_Total", "Pourcentage", "Observations", "Actions_Correctives"
     ]
     pd.DataFrame(columns=colonnes_init).to_csv(SHARED_DATA_FILE, index=False, encoding='utf-8')
@@ -181,7 +230,7 @@ def charger_audits():
 
 def log_click_event(action, details=""):
     """Enregistre un clic utilisateur avec horodatage milliseconde."""
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    timestamp = get_paris_now_str(with_ms=True)
     user = st.session_state.get("user_name", "ANONYME")
     role = st.session_state.get("user_role", "INCONNU")
     zone = st.session_state.get("user_zone", "NON_DEFINIE")
@@ -209,6 +258,127 @@ def log_click_event(action, details=""):
             f.write(f"{timestamp};{user};{role};{zone};{action};{details}\n")
     except Exception as e:
         pass
+
+
+def trigger_vote_fx(step_num, vote_type="OUI"):
+    """Joue un son et affiche une notification visuelle personnalisée (Smiley + Couleurs) selon le vote (OUI, NON, PARTIELLEMENT)."""
+    vote_upper = str(vote_type).upper()
+    
+    if "NON" in vote_upper:
+        smiley = "😞"
+        badge_txt = f"⚠️ ÉTAPE {step_num} : NON-CONFORME (NON) 😞"
+        border_color = "#EF4444"
+        bg_glow = "rgba(239, 68, 68, 0.5)"
+        # Son avertissement grave (Double-ton bas)
+        js_audio = """
+            var notes = [261.63, 196.00];
+            notes.forEach(function(freq, i){
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+                gain.gain.setValueAtTime(0.22, ctx.currentTime + i * 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.12 + 0.28);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + i * 0.12);
+                osc.stop(ctx.currentTime + i * 0.12 + 0.28);
+            });
+        """
+    elif "PARTIEL" in vote_upper or "N/A" in vote_upper:
+        smiley = "🤔"
+        badge_txt = f"❓ ÉTAPE {step_num} : PARTIEL / RÉSERVE 🤔"
+        border_color = "#F59E0B"
+        bg_glow = "rgba(245, 158, 11, 0.5)"
+        # Son interrogatif (Double ping médium)
+        js_audio = """
+            var notes = [440.00, 554.37];
+            notes.forEach(function(freq, i){
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.10);
+                gain.gain.setValueAtTime(0.20, ctx.currentTime + i * 0.10);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.10 + 0.22);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + i * 0.10);
+                osc.stop(ctx.currentTime + i * 0.10 + 0.22);
+            });
+        """
+    else:  # OUI
+        smiley = "😊"
+        badge_txt = f"✨ ÉTAPE {step_num} : CONFORME (OUI) 😊"
+        border_color = "#10B981"
+        bg_glow = "rgba(16, 185, 129, 0.5)"
+        # Son joyeux (Accord montant Do-Mi-Sol)
+        js_audio = """
+            var notes = [523.25, 659.25, 783.99];
+            notes.forEach(function(freq, i){
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+                gain.gain.setValueAtTime(0.20, ctx.currentTime + i * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.08 + 0.22);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + i * 0.08);
+                osc.stop(ctx.currentTime + i * 0.08 + 0.22);
+            });
+        """
+
+    fx_html = f"""
+    <script>
+    (function(){{
+        try {{
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            {js_audio}
+        }} catch(e) {{}}
+    }})();
+    </script>
+    <div class='step-vote-overlay' style='border-color: {border_color} !important; box-shadow: 0 10px 40px {bg_glow} !important;'>
+        <div class='smiley-bounce-anim'>{smiley}</div>
+        <div class='step-valid-badge' style='background: {border_color} !important; color: #FFFFFF !important;'>{badge_txt}</div>
+    </div>
+    """
+    st.markdown(fx_html, unsafe_allow_html=True)
+
+def trigger_step_validation_fx(step_num):
+    trigger_vote_fx(step_num, "OUI")
+
+def trigger_final_save_fx():
+    """Joue une fanfare festive et déclenche une pluie de boîtes métalliques et feux d'artifice."""
+    fx_html = """
+    <script>
+    (function(){{
+        try {{
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach(function(freq, i){{
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.12);
+                gain.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.12 + 0.35);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + i * 0.12);
+                osc.stop(ctx.currentTime + i * 0.12 + 0.35);
+            }});
+        }} catch(e) {{}}
+    }})();
+    </script>
+    <div class='final-save-overlay'>
+        <div class='final-save-box'>📦 🎁 🏆 ⚡ 🌟</div>
+        <div class='final-save-title'>🎉 AUDIT 5S ENREGISTRÉ AVEC SUCCÈS !</div>
+        <div class='final-save-sub'>Données & Horodatage mémorisés dans Google Sheets & CSV</div>
+    </div>
+    """
+    st.markdown(fx_html, unsafe_allow_html=True)
+    st.balloons()
+
 
 def sauvegarder_audit_local(data_dict):
     gsheets_ok = False
@@ -248,7 +418,7 @@ def sauvegarder_audit_local(data_dict):
 
     # Journal JSON
     log_entry = {
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "timestamp": get_paris_now_str(),
         "type": "TEST - Diagnostic" if st.session_state.get("test_mode", False) else "Diagnostic Réel",
         "details": f"Zone {data_dict.get('Zone', '')} par {data_dict.get('Auditeur', '')} ({data_dict.get('Score_Total', 0)}/15 - {data_dict.get('Pourcentage', 0)}%)",
         "gsheets": "OK" if gsheets_ok else f"OFFLINE ({err_details})"
@@ -851,6 +1021,231 @@ button[aria-label*="Zone 10"], div[data-testid="stButton"] button[aria-label*="Z
         box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5) !important;
     }
 
+
+    /* --- SÉLECTEURS DE PROTECTION HYBRIDES (ARIA-LABEL + HAS MARKER) --- */
+    
+    /* BOUTONS HOMMES (VRAI BLEU OCÉAN / CYAN NÉON) */
+    div:has(.boy-marker) + div button,
+    div:has(.boy-marker) + div div[data-testid="stButton"] button,
+    button[aria-label*="Damien"], button[aria-label*="Anthony"], button[aria-label*="Jonathan"],
+    button[aria-label*="Thomas"], button[aria-label*="Gaspard"], button[aria-label*="Dimitri"], button[aria-label*="Frédéric"] {
+        background: linear-gradient(135deg, #0284C7 0%, #1E3A8A 100%) !important;
+        border: 3px solid #38BDF8 !important;
+        border-bottom: 8px solid #0369A1 !important;
+        color: #FFFFFF !important;
+        font-size: 32px !important;
+        font-weight: 900 !important;
+        height: 100px !important;
+        border-radius: 20px !important;
+        box-shadow: 0 12px 30px rgba(2, 132, 199, 0.6) !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
+        letter-spacing: 1px !important;
+    }
+    
+    /* BOUTONS FEMMES (VRAI ROSE MAGENTA / FUCHSIA) */
+    div:has(.girl-marker) + div button,
+    div:has(.girl-marker) + div div[data-testid="stButton"] button,
+    button[aria-label*="Audrey"], button[aria-label*="Mariia"], button[aria-label*="Céline"], button[aria-label*="Nathalie"] {
+        background: linear-gradient(135deg, #BE185D 0%, #DB2777 50%, #F472B6 100%) !important;
+        border: 3px solid #F472B6 !important;
+        border-bottom: 8px solid #9D174D !important;
+        color: #FFFFFF !important;
+        font-size: 32px !important;
+        font-weight: 900 !important;
+        height: 100px !important;
+        border-radius: 20px !important;
+        box-shadow: 0 12px 30px rgba(219, 39, 119, 0.6) !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
+        letter-spacing: 1px !important;
+    }
+
+    /* SPECTRE DÉGRADÉ CONTINU ZONES 1 À 10 */
+    div:has(.zone-marker-0) + div button, button[aria-label*="Zone 1"] { background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important; border: 3px solid #38BDF8 !important; border-bottom: 8px solid #075985 !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+    div:has(.zone-marker-1) + div button, button[aria-label*="Zone 2"] { background: linear-gradient(135deg, #0284C7 0%, #0D9488 100%) !important; border: 3px solid #2DD4BF !important; border-bottom: 8px solid #0F766E !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+    div:has(.zone-marker-2) + div button, button[aria-label*="Zone 3"] { background: linear-gradient(135deg, #0D9488 0%, #059669 100%) !important; border: 3px solid #34D399 !important; border-bottom: 8px solid #047857 !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+    div:has(.zone-marker-3) + div button, button[aria-label*="Zone 4"] { background: linear-gradient(135deg, #059669 0%, #16A34A 100%) !important; border: 3px solid #4ADE80 !important; border-bottom: 8px solid #15803D !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+    div:has(.zone-marker-4) + div button, button[aria-label*="Zone 5"] { background: linear-gradient(135deg, #16A34A 0%, #CA8A04 100%) !important; border: 3px solid #FACC15 !important; border-bottom: 8px solid #A16207 !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+    div:has(.zone-marker-5) + div button, button[aria-label*="Zone 6"] { background: linear-gradient(135deg, #CA8A04 0%, #EA580C 100%) !important; border: 3px solid #FB923C !important; border-bottom: 8px solid #C2410C !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+    div:has(.zone-marker-6) + div button, button[aria-label*="Zone 7"] { background: linear-gradient(135deg, #EA580C 0%, #E11D48 100%) !important; border: 3px solid #FB7185 !important; border-bottom: 8px solid #BE123C !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+    div:has(.zone-marker-7) + div button, button[aria-label*="Zone 8"] { background: linear-gradient(135deg, #E11D48 0%, #C026D3 100%) !important; border: 3px solid #E879F9 !important; border-bottom: 8px solid #A21CAF !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+    div:has(.zone-marker-8) + div button, button[aria-label*="Zone 9"] { background: linear-gradient(135deg, #C026D3 0%, #9333EA 100%) !important; border: 3px solid #C084FC !important; border-bottom: 8px solid #7E22CE !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+    div:has(.zone-marker-9) + div button, button[aria-label*="Zone 10"] { background: linear-gradient(135deg, #9333EA 0%, #4C1D95 100%) !important; border: 3px solid #A855F7 !important; border-bottom: 8px solid #581C87 !important; font-size: 32px !important; font-weight: 900 !important; height: 100px !important; color: #FFF !important; }
+
+    /* BOUTONS VOTE AUDIT (🟢 OUI = VERT, 🔴 NON = ROUGE, 🔵 N/A = BLEU) */
+    div:has(.vote-marker-oui) + div button, button[aria-label*="OUI"] {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        border: 3px solid #34D399 !important;
+        border-bottom: 8px solid #047857 !important;
+        color: #FFFFFF !important;
+        font-size: 30px !important;
+        font-weight: 900 !important;
+        height: 90px !important;
+    }
+    div:has(.vote-marker-non) + div button, button[aria-label*="NON"] {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+        border: 3px solid #FCA5A5 !important;
+        border-bottom: 8px solid #B91C1C !important;
+        color: #FFFFFF !important;
+        font-size: 30px !important;
+        font-weight: 900 !important;
+        height: 90px !important;
+    }
+    div:has(.vote-marker-na) + div button, button[aria-label*="N/A"] {
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%) !important;
+        border: 3px solid #93C5FD !important;
+        border-bottom: 8px solid #1E40AF !important;
+        color: #FFFFFF !important;
+        font-size: 30px !important;
+        font-weight: 900 !important;
+        height: 90px !important;
+    }
+
+
+    /* --- STYLE CASE EXPLICATION DE L'ÉTAPE 5S --- */
+    .question-expl-box {
+        background: rgba(14, 116, 144, 0.25) !important;
+        border-left: 5px solid #38BDF8 !important;
+        border-radius: 12px !important;
+        padding: 14px 18px !important;
+        margin-top: 12px !important;
+        font-size: 1.05rem !important;
+        color: #E2E8F0 !important;
+        line-height: 1.5 !important;
+    }
+
+    /* --- STYLE BOUTON AJOUTER UN COMMENTAIRE --- */
+    .add-comment-btn-wrap button {
+        background: linear-gradient(135deg, #1E293B 0%, #334155 100%) !important;
+        border: 2px dashed #38BDF8 !important;
+        color: #38BDF8 !important;
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+        height: 60px !important;
+        border-radius: 14px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
+    }
+    .add-comment-btn-wrap button:hover {
+        background: #334155 !important;
+        color: #FFFFFF !important;
+        border-color: #7DD3FC !important;
+    }
+
+    /* --- CSS NOTIFICATION VISUELLE ET SONORE (ÉCLAIR + BOÎTE 📦) --- */
+    .step-vote-overlay {
+        position: fixed !important;
+        top: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 999999 !important;
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98)) !important;
+        border-width: 3px !important;
+        border-style: solid !important;
+        border-radius: 22px !important;
+        padding: 14px 28px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 16px !important;
+        pointer-events: none !important;
+        animation: flashPop 2.0s ease-out forwards !important;
+    }
+
+    .smiley-bounce-anim {
+        font-size: 2.5rem !important;
+        animation: smileyPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    @keyframes smileyPop {
+        0% { transform: scale(0.2) rotate(-30deg); opacity: 0; }
+        60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+        100% { transform: scale(1.0) rotate(0deg); opacity: 1; }
+    }
+
+    .step-flash-overlay {
+        position: fixed !important;
+        top: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 999999 !important;
+        background: linear-gradient(135deg, rgba(14, 82, 158, 0.95), rgba(15, 23, 42, 0.95)) !important;
+        border: 3px solid #38BDF8 !important;
+        box-shadow: 0 10px 40px rgba(56, 189, 248, 0.6), 0 0 20px rgba(255, 255, 255, 0.4) !important;
+        border-radius: 20px !important;
+        padding: 12px 25px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        pointer-events: none !important;
+        animation: flashPop 1.8s ease-out forwards !important;
+    }
+
+    @keyframes flashPop {
+        0% { opacity: 0; transform: translate(-50%, -40px) scale(0.7); }
+        15% { opacity: 1; transform: translate(-50%, 0px) scale(1.1); }
+        30% { transform: translate(-50%, 0px) scale(1.0); }
+        80% { opacity: 1; transform: translate(-50%, 0px) scale(1.0); }
+        100% { opacity: 0; transform: translate(-50%, -30px) scale(0.9); }
+    }
+
+    .falling-box-anim {
+        font-size: 2.2rem !important;
+        animation: boxDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    @keyframes boxDrop {
+        0% { transform: translateY(-50px) rotate(-20deg); opacity: 0; }
+        100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    }
+
+    .lightning-flash-anim {
+        font-size: 2rem !important;
+        animation: flashLightning 0.6s ease-in-out infinite alternate !important;
+    }
+
+    @keyframes flashLightning {
+        0% { transform: scale(1); filter: drop-shadow(0 0 2px #FACC15); }
+        100% { transform: scale(1.3); filter: drop-shadow(0 0 10px #FACC15); }
+    }
+
+    .step-valid-badge {
+        font-size: 1.15rem !important;
+        font-weight: 900 !important;
+        color: #FFFFFF !important;
+        letter-spacing: 2px !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
+    }
+
+    .final-save-overlay {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98)) !important;
+        border: 3px solid #F59E0B !important;
+        box-shadow: 0 15px 50px rgba(245, 158, 11, 0.5) !important;
+        border-radius: 22px !important;
+        padding: 25px !important;
+        text-align: center !important;
+        margin-bottom: 25px !important;
+        animation: finalPop 1s ease-out !important;
+    }
+
+    .final-save-box {
+        font-size: 2.5rem !important;
+        margin-bottom: 10px !important;
+    }
+
+    .final-save-title {
+        font-size: 1.6rem !important;
+        font-weight: 900 !important;
+        color: #FACC15 !important;
+        letter-spacing: 2px !important;
+    }
+
+    .final-save-sub {
+        font-size: 1.1rem !important;
+        color: #38BDF8 !important;
+        font-weight: 700 !important;
+        margin-top: 6px !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -988,11 +1383,11 @@ if not st.session_state.get("user_authenticated", False):
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # ÉTAPE 3 : SÉLECTION DE LA ZONE (NOM SEUL + DÉGRADÉ RAINBOW)
+    # ÉTAPE 3 : SÉLECTION DE LA ZONE (AVEC DESCRIPTIONS DE ZONE COMPLÈTES)
     elif auth_step == 3:
         st.markdown("<div class='user-id-badge-3d'>📍 SÉLECTION DE LA ZONE LOGISTIQUE</div>", unsafe_allow_html=True)
         st.info(f"Profil actif : **{st.session_state.get('user_name', '')}** ({st.session_state.get('user_role', '')})")
-        st.markdown("<p style='text-align: center; font-size: 18px; color: #CBD5E1; font-weight: 700;'>Cliquez sur votre zone pour continuer :</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-size: 18px; color: #CBD5E1; font-weight: 700;'>Consultez les descriptions et sélectionnez votre zone :</p>", unsafe_allow_html=True)
 
         ZONES_BADGES = [
             {"key": "Zone 1", "icon": "🎞️"},
@@ -1010,9 +1405,12 @@ if not st.session_state.get("user_authenticated", False):
         col_z1, col_z2 = st.columns(2)
         for idx, z in enumerate(ZONES_BADGES):
             target_col = col_z1 if idx % 2 == 0 else col_z2
+            z_info = ZONES_MASSILLY.get(z["key"], {})
+            z_label = z_info.get("label", z["key"])
+            z_sponsor = z_info.get("sponsor", "")
             with target_col:
                 st.markdown(f"<div class='zone-marker-{idx}'></div>", unsafe_allow_html=True)
-                lbl = f"{z['icon']}  {z['key']}"
+                lbl = f"{z['icon']}  {z_label} — Sponsor : {z_sponsor}"
                 if st.button(lbl, key=f"z_badge_{idx}", use_container_width=True):
                     st.session_state.pending_zone = z["key"]
                     st.session_state.auth_step = 4 # Étape de confirmation!
@@ -1111,53 +1509,62 @@ else:
             total_q = len(CRITERES_OFFICIELS)
             
             if idx < total_q:
+                # Afficher la notification visuelle et sonore si une étape vient d'être validée
+                last_valid = st.session_state.get("just_validated_step")
+                last_vote = st.session_state.get("last_vote_type", "OUI")
+                if last_valid:
+                    trigger_vote_fx(last_valid, last_vote)
+                    st.session_state["just_validated_step"] = None
                 crit = CRITERES_OFFICIELS[idx]
                 pct_prog = int(((idx + 1) / total_q) * 100)
                 
                 st.progress(pct_prog / 100.0)
-                st.markdown(f"<p style='text-align: right; font-size: 16px; color: #CBD5E1; font-weight: bold;'>Étape {idx + 1} sur {total_q} ({pct_prog}%)</p>", unsafe_allow_html=True)
+                
+                # 1. CARTE PRINCIPALE DE LA QUESTION AVEC DESCRIPTIONS COMPLETES (EN HAUT)
+                check_body = crit.get('check_txt', crit['txt'])
+                expl_html = f"<div class='question-expl-box'>{crit.get('expl', '')}</div>" if crit.get('expl') else ""
                 
                 st.markdown(f"""
-                <div class='question-card'>
-                    <div class='question-cat'>{crit['cat']}</div>
-                    <div class='question-text'>{crit['txt']}</div>
+                <div class='question-card-high-contrast'>
+                    <div class='question-step-badge'>Étape {idx + 1} sur {total_q}</div>
+                    <div class='question-cat-title'>{crit['cat']}</div>
+                    <div class='question-check-header'>🔍 Je vérifie :</div>
+                    <div class='question-check-body'>{check_body}</div>
+                    {expl_html}
+                    <div class='question-order-prompt'>👉 Est-ce que tout est en ordre ?</div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Champ de commentaire spécifique à cette étape
-                step_comment_key = f"step_comment_{crit['id']}"
-                existing_comment = st.session_state.answers.get(f"{crit['id']}_comment", "")
-                step_comment = st.text_input(f"💬 Commentaire / Observation spécifique (Étape {idx+1}) :", value=existing_comment, key=step_comment_key)
-                if step_comment.strip():
-                    st.session_state.answers[f"{crit['id']}_comment"] = step_comment.strip()
-
-                st.markdown("<br>", unsafe_allow_html=True)
+                # 2. BOUTONS GÉANTS DE VOTE (AU MILIEU)
                 c_v1, c_v2, c_v3 = st.columns(3)
                 with c_v1:
+                    st.markdown("<div class='vote-btn-oui'></div>", unsafe_allow_html=True)
                     if st.button("🟢 OUI", use_container_width=True, key=f"btn_oui_{idx}"):
                         st.session_state.answers[crit["id"]] = "OUI"
-                        if step_comment.strip():
-                            st.session_state.answers[f"{crit['id']}_comment"] = step_comment.strip()
-                        log_click_event(f"VOTE_OUI_Étape_{idx+1}", f"Critère: {crit['cat']} | Com: {step_comment.strip()}")
+                        st.session_state[f"asking_why_{crit['id']}"] = False
+                        st.session_state["just_validated_step"] = idx + 1
+                        st.session_state["last_vote_type"] = "OUI"
+                        log_click_event(f"VOTE_OUI_Étape_{idx+1}", crit["cat"])
                         st.session_state.current_q_idx += 1
                         st.rerun()
                 with c_v2:
+                    st.markdown("<div class='vote-btn-non'></div>", unsafe_allow_html=True)
                     if st.button("🔴 NON", use_container_width=True, key=f"btn_non_{idx}"):
                         st.session_state.answers[crit["id"]] = "NON"
-                        if step_comment.strip():
-                            st.session_state.answers[f"{crit['id']}_comment"] = step_comment.strip()
-                        log_click_event(f"VOTE_NON_Étape_{idx+1}", f"Critère: {crit['cat']} | Com: {step_comment.strip()}")
-                        st.session_state.current_q_idx += 1
+                        st.session_state[f"asking_why_{crit['id']}"] = True
+                        st.session_state["last_vote_type"] = "NON"
+                        log_click_event(f"VOTE_NON_Étape_{idx+1}", crit["cat"])
                         st.rerun()
                 with c_v3:
-                    if st.button("🔵 N/A", use_container_width=True, key=f"btn_na_{idx}"):
-                        st.session_state.answers[crit["id"]] = "N/A"
-                        if step_comment.strip():
-                            st.session_state.answers[f"{crit['id']}_comment"] = step_comment.strip()
-                        log_click_event(f"VOTE_NA_Étape_{idx+1}", f"Critère: {crit['cat']} | Com: {step_comment.strip()}")
-                        st.session_state.current_q_idx += 1
+                    st.markdown("<div class='vote-btn-partiel'></div>", unsafe_allow_html=True)
+                    if st.button("🟠 PARTIEL", use_container_width=True, key=f"btn_partiel_{idx}"):
+                        st.session_state.answers[crit["id"]] = "PARTIELLEMENT"
+                        st.session_state[f"asking_why_{crit['id']}"] = True
+                        st.session_state["last_vote_type"] = "PARTIELLEMENT"
+                        log_click_event(f"VOTE_PARTIEL_Étape_{idx+1}", crit["cat"])
                         st.rerun()
-                        
+
+                # 3. BOUTON RETOUR QUESTION PRÉCÉDENTE
                 st.markdown("<br>", unsafe_allow_html=True)
                 if idx > 0:
                     st.markdown("<div class='back-btn-container'>", unsafe_allow_html=True)
@@ -1165,7 +1572,60 @@ else:
                         st.session_state.current_q_idx -= 1
                         st.rerun()
                     st.markdown("</div>", unsafe_allow_html=True)
+
+                # 4. CASE COMMENTAIRE DE PLACEMENT BAS (TOUT EN BAS DE L'ÉCRAN)
+                asking_why = st.session_state.get(f"asking_why_{crit['id']}", False)
+                existing_comment = st.session_state.answers.get(f"{crit['id']}_comment", "")
+                
+                # Permettre aussi d'ouvrir le commentaire optionnellement
+                manual_com_key = f"manual_com_open_{crit['id']}"
+                
+                if asking_why or st.session_state.get(manual_com_key, False) or existing_comment:
+                    st.markdown("""
+                    <div class='why-box-container'>
+                        <div class='why-box-title'>⚠️ Pourquoi ? Qu'est-ce qui n'est pas conforme ou partiel ?</div>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
+                    why_input = st.text_area(
+                        f"✍️ Saisissez votre remarque (Étape {idx+1}) :",
+                        value=existing_comment,
+                        key=f"input_why_{crit['id']}",
+                        height=100
+                    )
+                    
+                    col_why1, col_why2 = st.columns(2)
+                    with col_why1:
+                        st.markdown("<div class='valide-btn'>", unsafe_allow_html=True)
+                        if st.button("🚀 VALIDER ET CONTINUER", use_container_width=True, key=f"btn_val_why_{idx}"):
+                            if why_input.strip():
+                                st.session_state.answers[f"{crit['id']}_comment"] = why_input.strip()
+                            else:
+                                st.session_state.answers.pop(f"{crit['id']}_comment", None)
+                            st.session_state[f"asking_why_{crit['id']}"] = False
+                            st.session_state[manual_com_key] = False
+                            st.session_state["just_validated_step"] = idx + 1
+                            log_click_event(f"VALIDATION_COMMENTAIRE_Étape_{idx+1}", why_input.strip())
+                            st.session_state.current_q_idx += 1
+                            st.rerun()
+                        st.markdown("</div>", unsafe_allow_html=True)
+                        
+                    with col_why2:
+                        st.markdown("<div class='back-btn-container'>", unsafe_allow_html=True)
+                        if st.button("⏩ AUCUN COMMENTAIRE À FAIRE (Passer)", use_container_width=True, key=f"btn_pass_why_{idx}"):
+                            st.session_state[f"asking_why_{crit['id']}"] = False
+                            st.session_state[manual_com_key] = False
+                            st.session_state["just_validated_step"] = idx + 1
+                            log_click_event(f"PASSER_COMMENTAIRE_Étape_{idx+1}", crit["cat"])
+                            st.session_state.current_q_idx += 1
+                            st.rerun()
+                        st.markdown("</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    if st.button("💬 Ajouter un commentaire optionnel", key=f"btn_open_opt_com_{idx}", use_container_width=True):
+                        st.session_state[manual_com_key] = True
+                        st.rerun()
+
             else:
                 st.success("🎉 Questionnaire terminé ! Saisissez vos observations ci-dessous :")
                 
@@ -1197,29 +1657,55 @@ else:
                 with col_fin2:
                     st.markdown("<div class='valide-btn'>", unsafe_allow_html=True)
                     if st.button("💾 VALIDER & ENREGISTRER L'AUDIT 5S", use_container_width=True):
+                        trigger_final_save_fx()
+                        
+                        # Assemblage de tous les commentaires d'étapes (1 à 15)
+                        step_comments_list = []
+                        for c in CRITERES_OFFICIELS:
+                            c_id = c["id"]
+                            c_val = st.session_state.answers.get(c_id, "Non répondu")
+                            c_com = st.session_state.answers.get(f"{c_id}_comment", "").strip()
+                            if c_com:
+                                step_comments_list.append(f"[{c['cat']} - {c_val}] : {c_com}")
+                                
+                        obs_parts = []
+                        if step_comments_list:
+                            obs_parts.append("💬 COMMENTAIRES DES ÉTAPES :\n" + "\n".join(step_comments_list))
+                        if obs.strip():
+                            obs_parts.append("📝 REMARQUES GLOBALES FINALES :\n" + obs.strip())
+                            
+                        final_obs = "\n\n".join(obs_parts) if obs_parts else "Aucune observation"
+                        final_act = act.strip() if act.strip() else "Aucune action"
+                        
                         audit_record = {
-                            "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "Date": get_paris_now_str(),
                             "Zone": ZONES_MASSILLY[st.session_state.user_zone]["label"],
                             "Sponsor": ZONES_MASSILLY[st.session_state.user_zone]["sponsor"],
                             "Auditeur": st.session_state.user_name,
                             "Role": st.session_state.user_role,
-                            "Score_Total": score,
+                            "Score_Total": f"{score:.1f}",
                             "Pourcentage": pct,
-                            "Observations": obs,
-                            "Actions_Correctives": act
+                            "Observations": final_obs,
+                            "Actions_Correctives": final_act
                         }
+                        
+                        # Enregistrement individuel de chaque étape + chaque commentaire d'étape
                         for c in CRITERES_OFFICIELS:
-                            audit_record[c["id"]] = st.session_state.answers.get(c["id"], "N/A")
+                            c_id = c["id"]
+                            audit_record[c_id] = st.session_state.answers.get(c_id, "Non répondu")
+                            audit_record[f"{c_id}_comment"] = st.session_state.answers.get(f"{c_id}_comment", "")
                             
                         ok, err = sauvegarder_audit_local(audit_record)
+                        log_click_event("ENREGISTREMENT_FINAL_AUDIT", f"Score: {score}/15 ({pct}%) | Obs: {len(final_obs)} chars")
+                        
                         st.session_state.audit_started = False
                         st.session_state.current_q_idx = 0
                         st.session_state.answers = {}
+                        
                         if ok:
-                            st.balloons()
-                            st.success("✅ Audit enregistré avec succès dans Google Sheets !")
+                            st.success("✅ Audit et l'ensemble de ses commentaires enregistrés avec succès dans Google Sheets et CSV !")
                         else:
-                            st.warning(f"⚠️ Audit sauvegardé localement (GSheets offline : {err})")
+                            st.warning(f"⚠️ Audit sauvegardé localement dans le fichier CSV (GSheets : {err})")
                         st.rerun()
                     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1233,7 +1719,7 @@ else:
                 st.markdown("#### Diagnostic de liaison Google Sheets")
                 if st.button("🔌 TESTER LA CONNEXION GOOGLE SHEETS", use_container_width=True):
                     ok, err = sauvegarder_audit_local({
-                        "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "Date": get_paris_now_str(),
                         "Zone": "TEST_CONNEXION",
                         "Sponsor": "SYSTEM",
                         "Auditeur": st.session_state.get('user_name', 'TEST_ADMIN'),
