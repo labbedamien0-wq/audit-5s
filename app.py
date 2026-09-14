@@ -1,6 +1,6 @@
 import streamlit.components.v1 as components
 
-# Injection du système audio universel ultra-instantané
+# Injection du débloqueur audio passif
 components.html("""
 <script>
 (function() {
@@ -10,41 +10,15 @@ components.html("""
             pWin.globalAudioCtx = new (pWin.AudioContext || pWin.webkitAudioContext)();
         } catch(e) {}
     }
-    
-    function playInstantBip() {
+    function unlockAudio() {
         try {
-            var ctx = pWin.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-            if (ctx.state === 'suspended') { ctx.resume(); }
-            var now = ctx.currentTime;
-            var notes = [523.25, 659.25, 783.99];
-            notes.forEach(function(freq, i) {
-                var osc = ctx.createOscillator();
-                var gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, now + i * 0.07);
-                gain.gain.setValueAtTime(0.25, now + i * 0.07);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.22);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(now + i * 0.07);
-                osc.stop(now + i * 0.07 + 0.22);
-            });
+            if (pWin.globalAudioCtx && pWin.globalAudioCtx.state === 'suspended') {
+                pWin.globalAudioCtx.resume();
+            }
         } catch(e) {}
     }
-    
-    function handleGlobalClick(e) {
-        var target = e.target;
-        if (!target) return;
-        var text = (target.innerText || target.textContent || '').toUpperCase();
-        if (text.includes('OUI') || text.includes('NON') || text.includes('PARTIEL') || text.includes('VALIDER') || text.includes('DÉMARRER') || text.includes('ENTRER')) {
-            playInstantBip();
-        }
-    }
-    
-    pWin.document.removeEventListener('click', handleGlobalClick, true);
-    pWin.document.addEventListener('click', handleGlobalClick, true);
-    pWin.document.removeEventListener('touchstart', handleGlobalClick, true);
-    pWin.document.addEventListener('touchstart', handleGlobalClick, true);
+    pWin.document.addEventListener('click', unlockAudio, { once: true });
+    pWin.document.addEventListener('touchstart', unlockAudio, { once: true });
 })();
 </script>
 """, height=0, width=0)
@@ -1698,7 +1672,6 @@ else:
                     if st.button("🔴 NON", use_container_width=True, key=f"btn_non_{idx}"):
                         st.session_state.answers[crit["id"]] = "NON"
                         st.session_state[f"asking_why_{crit['id']}"] = True
-                        st.session_state["just_validated_step"] = idx + 1
                         st.session_state["last_vote_type"] = "NON"
                         log_click_event(f"VOTE_NON_Étape_{idx+1}", crit["cat"])
                         st.rerun()
@@ -1707,7 +1680,6 @@ else:
                     if st.button("🟠 PARTIEL", use_container_width=True, key=f"btn_partiel_{idx}"):
                         st.session_state.answers[crit["id"]] = "PARTIELLEMENT"
                         st.session_state[f"asking_why_{crit['id']}"] = True
-                        st.session_state["just_validated_step"] = idx + 1
                         st.session_state["last_vote_type"] = "PARTIELLEMENT"
                         log_click_event(f"VOTE_PARTIEL_Étape_{idx+1}", crit["cat"])
                         st.rerun()
@@ -1752,6 +1724,7 @@ else:
                                 st.session_state.answers.pop(f"{crit['id']}_comment", None)
                             st.session_state[f"asking_why_{crit['id']}"] = False
                             st.session_state[manual_com_key] = False
+                            st.session_state["just_validated_step"] = idx + 1
                             log_click_event(f"VALIDATION_COMMENTAIRE_Étape_{idx+1}", why_input.strip())
                             st.session_state.current_q_idx += 1
                             st.rerun()
@@ -1762,6 +1735,7 @@ else:
                         if st.button("⏩ AUCUN COMMENTAIRE À FAIRE (Passer)", use_container_width=True, key=f"btn_pass_why_{idx}"):
                             st.session_state[f"asking_why_{crit['id']}"] = False
                             st.session_state[manual_com_key] = False
+                            st.session_state["just_validated_step"] = idx + 1
                             log_click_event(f"PASSER_COMMENTAIRE_Étape_{idx+1}", crit["cat"])
                             st.session_state.current_q_idx += 1
                             st.rerun()
