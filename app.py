@@ -1,3 +1,4 @@
+import streamlit.components.v1 as components
 import streamlit as st
 import pandas as pd
 import json
@@ -328,21 +329,21 @@ def trigger_vote_fx(step_num, vote_type="OUI"):
             });
         """
 
-    fx_html = f"""
-    <script>
+        js_code = f"""<script>
     (function(){{
         try {{
             var ctx = new (window.AudioContext || window.webkitAudioContext)();
             {js_audio}
         }} catch(e) {{}}
     }})();
-    </script>
-    <div class='step-vote-overlay' style='border-color: {border_color} !important; box-shadow: 0 10px 40px {bg_glow} !important;'>
-        <div class='smiley-bounce-anim'>{smiley}</div>
-        <div class='step-valid-badge' style='background: {border_color} !important; color: #FFFFFF !important;'>{badge_txt}</div>
-    </div>
-    """
-    st.markdown(fx_html, unsafe_allow_html=True)
+    </script>"""
+    components.html(js_code, height=0, width=0)
+    
+    overlay_html = f"""<div class='step-vote-overlay' style='border-color: {border_color} !important; box-shadow: 0 10px 40px {border_color} !important;'>
+        <div class='vote-overlay-icon'>{icon}</div>
+        <div class='vote-overlay-badge' style='color: {border_color} !important;'>{label}</div>
+    </div>"""
+    st.markdown(overlay_html, unsafe_allow_html=True)
 
 def trigger_step_validation_fx(step_num, vote_type="OUI"):
     """Joue un son distinct et affiche une animation visuelle (Smiley + Boîte 📦) selon le vote."""
@@ -409,32 +410,30 @@ def trigger_step_validation_fx(step_num, vote_type="OUI"):
             });
         """
 
-    fx_html = f"""
-    <script>
+        js_code = f"""<script>
     (function(){{
         try {{
             {sound_js}
         }} catch(e) {{}}
     }})();
-    </script>
-    <div class='step-flash-overlay' style='background: {bg_gradient} !important; border-color: {border_color} !important;'>
+    </script>"""
+    components.html(js_code, height=0, width=0)
+    
+    overlay_html = f"""<div class='step-flash-overlay' style='background: {bg_gradient} !important; border-color: {border_color} !important;'>
         <div class='falling-box-anim'>{icon}</div>
-        <div class='lightning-flash-anim'>⚡</div>
-        <div class='step-valid-badge'>{title}</div>
-    </div>
-    """
-    st.markdown(fx_html, unsafe_allow_html=True)
+        <div class='step-valid-badge' style='color: {border_color} !important;'>{label}</div>
+    </div>"""
+    st.markdown(overlay_html, unsafe_allow_html=True)
 
 
 def trigger_final_save_fx():
     """Joue une fanfare festive et déclenche une pluie de boîtes métalliques et feux d'artifice."""
-    fx_html = """
-    <script>
-    (function(){{
-        try {{
+    js_code = """<script>
+    (function(){
+        try {
             var ctx = new (window.AudioContext || window.webkitAudioContext)();
             var notes = [523.25, 659.25, 783.99, 1046.50];
-            notes.forEach(function(freq, i){{
+            notes.forEach(function(freq, i){
                 var osc = ctx.createOscillator();
                 var gain = ctx.createGain();
                 osc.type = 'triangle';
@@ -445,17 +444,18 @@ def trigger_final_save_fx():
                 gain.connect(ctx.destination);
                 osc.start(ctx.currentTime + i * 0.12);
                 osc.stop(ctx.currentTime + i * 0.12 + 0.35);
-            }});
-        }} catch(e) {{}}
-    }})();
-    </script>
-    <div class='final-save-overlay'>
+            });
+        } catch(e) {}
+    })();
+    </script>"""
+    components.html(js_code, height=0, width=0)
+    
+    overlay_html = """<div class='final-save-overlay'>
         <div class='final-save-box'>📦 🎁 🏆 ⚡ 🌟</div>
         <div class='final-save-title'>🎉 AUDIT 5S ENREGISTRÉ AVEC SUCCÈS !</div>
         <div class='final-save-sub'>Données & Horodatage mémorisés dans Google Sheets & CSV</div>
-    </div>
-    """
-    st.markdown(fx_html, unsafe_allow_html=True)
+    </div>"""
+    st.markdown(overlay_html, unsafe_allow_html=True)
     st.balloons()
 
 
@@ -1327,23 +1327,24 @@ button[aria-label*="Zone 10"], div[data-testid="stButton"] button[aria-label*="Z
 
 </style>
 
-    <!-- DÉBLOCAGE AUDIO ET AUTO-SCROLL SUR SMARTPHONE -->
-    <script>
-    (function() {
-        if (!window.globalAudioCtx) {
-            window.globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        function unlockAudio() {
-            if (window.globalAudioCtx && window.globalAudioCtx.state === 'suspended') {
-                window.globalAudioCtx.resume();
-            }
-        }
-        window.addEventListener('click', unlockAudio, { once: true });
-        window.addEventListener('touchstart', unlockAudio, { once: true });
-    })();
-    </script>
+
 
 """, unsafe_allow_html=True)
+
+components.html("""<script>
+(function() {
+    if (!parent.window.globalAudioCtx) {
+        parent.window.globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    function unlockAudio() {
+        if (parent.window.globalAudioCtx && parent.window.globalAudioCtx.state === 'suspended') {
+            parent.window.globalAudioCtx.resume();
+        }
+    }
+    parent.window.addEventListener('click', unlockAudio, { once: true });
+    parent.window.addEventListener('touchstart', unlockAudio, { once: true });
+})();
+</script>""", height=0, width=0)
 
 # Affichage permanent du titre principal
 # Top header removed per user request
