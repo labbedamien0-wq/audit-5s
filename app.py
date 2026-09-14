@@ -1,4 +1,54 @@
 import streamlit.components.v1 as components
+
+# Injection du système audio universel ultra-instantané
+components.html("""
+<script>
+(function() {
+    var pWin = window.parent || window;
+    if (!pWin.globalAudioCtx) {
+        try {
+            pWin.globalAudioCtx = new (pWin.AudioContext || pWin.webkitAudioContext)();
+        } catch(e) {}
+    }
+    
+    function playInstantBip() {
+        try {
+            var ctx = pWin.globalAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') { ctx.resume(); }
+            var now = ctx.currentTime;
+            var notes = [523.25, 659.25, 783.99];
+            notes.forEach(function(freq, i) {
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + i * 0.07);
+                gain.gain.setValueAtTime(0.25, now + i * 0.07);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.22);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now + i * 0.07);
+                osc.stop(now + i * 0.07 + 0.22);
+            });
+        } catch(e) {}
+    }
+    
+    function handleGlobalClick(e) {
+        var target = e.target;
+        if (!target) return;
+        var text = (target.innerText || target.textContent || '').toUpperCase();
+        if (text.includes('OUI') || text.includes('NON') || text.includes('PARTIEL') || text.includes('VALIDER') || text.includes('DÉMARRER') || text.includes('ENTRER')) {
+            playInstantBip();
+        }
+    }
+    
+    pWin.document.removeEventListener('click', handleGlobalClick, true);
+    pWin.document.addEventListener('click', handleGlobalClick, true);
+    pWin.document.removeEventListener('touchstart', handleGlobalClick, true);
+    pWin.document.addEventListener('touchstart', handleGlobalClick, true);
+})();
+</script>
+""", height=0, width=0)
+
 import streamlit as st
 import pandas as pd
 import json
@@ -40,7 +90,7 @@ def get_gsheets_connection():
 
 # Configuration de la page
 st.set_page_config(
-    page_title="Massilly - Audit 5S Mobile v14",
+    page_title="Massilly - Audit 5S Mobile v79",
     page_icon="📦",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -176,6 +226,7 @@ CRITERES_OFFICIELS = [
 
 
 # Initialisation robuste de la session
+st.session_state.setdefault("layout_mode", "smartphone")
 st.session_state.setdefault("user_authenticated", False)
 st.session_state.setdefault("user_role", "")
 st.session_state.setdefault("user_name", "")
@@ -1416,7 +1467,11 @@ if not st.session_state.get("user_authenticated", False):
     elif auth_step == 3:
         st.markdown("<div class='user-id-badge-3d'>📍 SÉLECTION DE LA ZONE LOGISTIQUE</div>", unsafe_allow_html=True)
         st.info(f"Profil actif : **{st.session_state.get('user_name', '')}** ({st.session_state.get('user_role', '')})")
-        st.markdown("<p style='text-align: center; font-size: 18px; color: #CBD5E1; font-weight: 700;'>Consultez les descriptions et sélectionnez votre zone :</p>", unsafe_allow_html=True)
+        
+        # Sélecteur d'interface Smartphone vs PC
+        mode_choice = st.radio("📱 Mode d'affichage d'interface :", ["📱 Smartphone (1 Colonne)", "💻 PC / Tablette (2 Colonnes)"], index=0 if st.session_state.get("layout_mode") == "smartphone" else 1, horizontal=True, key="mode_selector_radio")
+        st.session_state["layout_mode"] = "smartphone" if "Smartphone" in mode_choice else "pc"
+        st.markdown("<p style='text-align: center; font-size: 18px; color: #CBD5E1; font-weight: 700;'>Sélectionnez votre zone :</p>", unsafe_allow_html=True)
 
         ZONES_BADGES = [
             {"key": "Zone 1", "icon": "🎞️"},
@@ -1431,19 +1486,36 @@ if not st.session_state.get("user_authenticated", False):
             {"key": "Zone 10", "icon": "☣️"}
         ]
 
-        col_z1, col_z2 = st.columns(2)
-        for idx, z in enumerate(ZONES_BADGES):
-            target_col = col_z1 if idx % 2 == 0 else col_z2
-            z_info = ZONES_MASSILLY.get(z["key"], {})
-            z_label = z_info.get("label", z["key"])
-            z_sponsor = z_info.get("sponsor", "")
-            with target_col:
+        current_mode = st.session_state.get("layout_mode", "smartphone")
+        
+        if current_mode == "smartphone":
+            # Affichage séquentiel strict (1 colonne : Zone 1 à Zone 10)
+            for idx, z in enumerate(ZONES_BADGES):
+                z_info = ZONES_MASSILLY.get(z["key"], {})
+                z_label = z_info.get("label", z["key"])
                 st.markdown(f"<div class='zone-marker-{idx}'></div>", unsafe_allow_html=True)
                 lbl = f"{z['icon']}  {z_label}"
-                if st.button(lbl, key=f"z_badge_{idx}", use_container_width=True):
+                if st.button(lbl, key=f"z_badge_sp_{idx}", use_container_width=True):
                     st.session_state.pending_zone = z["key"]
-                    st.session_state.auth_step = 4 # Étape de confirmation!
+                    st.session_state.auth_step = 4
                     st.rerun()
+        else:
+            # Affichage PC / Tablette par rangées (Zone 1 & 2, Zone 3 & 4...)
+            for i in range(0, len(ZONES_BADGES), 2):
+                col_z1, col_z2 = st.columns(2)
+                for offset, col_target in enumerate([col_z1, col_z2]):
+                    idx = i + offset
+                    if idx < len(ZONES_BADGES):
+                        z = ZONES_BADGES[idx]
+                        z_info = ZONES_MASSILLY.get(z["key"], {})
+                        z_label = z_info.get("label", z["key"])
+                        with col_target:
+                            st.markdown(f"<div class='zone-marker-{idx}'></div>", unsafe_allow_html=True)
+                            lbl = f"{z['icon']}  {z_label}"
+                            if st.button(lbl, key=f"z_badge_pc_{idx}", use_container_width=True):
+                                st.session_state.pending_zone = z["key"]
+                                st.session_state.auth_step = 4
+                                st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("<div class='back-btn-container'>", unsafe_allow_html=True)
